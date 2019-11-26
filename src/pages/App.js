@@ -26,20 +26,38 @@ export default class App extends React.Component {
     this.onMapPress = this.onMapPress.bind(this);
   }
   async componentDidMount() {
-    var firebaseConfig = {
-      apiKey: "AIzaSyAcQ8jTZK6PPeQRKaO2txOmvpbRG7AqHSU",
-      authDomain: "series-3e08b.firebaseapp.com",
-      databaseURL: "https://series-3e08b.firebaseio.com",
-      projectId: "series-3e08b",
-      storageBucket: "",
-      messagingSenderId: "779861796924",
-      appId: "1:779861796924:web:da506c2ada262d605a3b39"
-    };
+    // var firebaseConfig = {
+    //   apiKey: "AIzaSyAcQ8jTZK6PPeQRKaO2txOmvpbRG7AqHSU",
+    //   authDomain: "series-3e08b.firebaseapp.com",
+    //   databaseURL: "https://series-3e08b.firebaseio.com",
+    //   projectId: "series-3e08b",
+    //   storageBucket: "",
+    //   messagingSenderId: "779861796924",
+    //   appId: "1:779861796924:web:da506c2ada262d605a3b39"
+    // };
 
-    // Initialize Firebase
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
+    // // Initialize Firebase
+    // if (!firebase.apps.length) {
+    //   firebase.initializeApp(firebaseConfig);
+    // }
+    // firebase.database().ref('/dados').on('value', data => {
+    //   console.log(data.val90)
+    //   // this.state.markers = data.;
+    // })
+    const ref = firebase.database().ref('dados')
+    await ref.on('child_added', snapshot => {
+      const { name, latitude, longitude } = snapshot.val();
+      this.state.markers.push({
+        name: name,
+        coordinate: {
+          latitude: latitude,
+          longitude: longitude
+        }
+      });
+      this.setState({ markers: [...this.state.markers] })
+      // console.log(this.state.markers)
+      // this.state.markers = snapshot;
+    })
 
   }
   async onMapPress(e) {
@@ -72,12 +90,12 @@ export default class App extends React.Component {
           const db = firebase.database()
 
           await db.ref(`/dados`).push(dados)
-          await this.props.navigation.navigate('Formulario', {
-            paciente: {
-              latitude: latitude,
-              longitude: longitude
-            }
-          });
+          // await this.props.navigation.navigate('Formulario', {
+          //   paciente: {
+          //     latitude: latitude,
+          //     longitude: longitude
+          //   }
+          // });
 
         }
       }],
@@ -91,7 +109,27 @@ export default class App extends React.Component {
   }
 
   render() {
+    const { navigation } = this.props;
+    const { markers } = navigation.state.params;
+    this.state.markers.push({
+      name: markers.name,
+      coordinate: {
+        latitude: markers.coordinate.latitude,
+        longitude: markers.coordinate.longitude
+      }
+    });
     // console.log(this.state.markers)
+    // const { nome } = markers
+    // this.state.markers = markers
+    // this.setState({markers})
+    // this.state.markers.push({
+    //   name: dados.name,
+    //   coordinate: {
+    //     latitude: dados.latitude,
+    //     longitude: dados.longitude
+    //   }
+    // })
+    // console.log(markers.name)
     return (
       <View style={styles.container} >
 
@@ -116,8 +154,6 @@ export default class App extends React.Component {
                   latitude: marker.coordinate.latitude,
                   longitude: marker.coordinate.longitude
                 }
-                // latitude: parseFloat(marker.latitude),
-                // longitude: parseFloat(marker.longitude)
               }
               title={marker.name}
               description={"Trabalho sobre a pesquisa de hanseniase"}
@@ -127,17 +163,6 @@ export default class App extends React.Component {
 
         </MapView>
         <View style={styles.buttonContainer}>
-          {/* <FlatList
-            data={this.state.markers}
-            renderItem={({ item }) => (<Text>{item.name}</Text>)}
-            keyExtractor={item => item.id}
-          /> */}
-          {/* <TouchableOpacity
-            onPress={() => this.setState({ markers: [] })}
-            style={styles.bubble}
-          >
-            <Text>Toque em qualquer lugar</Text>
-          </TouchableOpacity> */}
         </View>
       </View>
     )
